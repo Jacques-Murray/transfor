@@ -103,9 +103,7 @@ pub fn write_data(mut w: impl Write, data: &Value, format: Format) -> Result<(),
                 // Write header record
                 wtr.write_record(&headers)?;
 
-                let mut rows: Vec<Vec<String>> = Vec::new();
-
-                // Convert all records to rows
+                // Write each record directly without collecting into a vector
                 for record in records {
                     if let Value::Object(map) = record {
                         let mut row: Vec<String> = Vec::with_capacity(headers.len());
@@ -122,16 +120,11 @@ pub fn write_data(mut w: impl Write, data: &Value, format: Format) -> Result<(),
                             };
                             row.push(val_str);
                         }
-                        rows.push(row);
+                        wtr.write_record(&row)?;
                     } else {
                         // The array contains a mix of objects and non-objects
                         return Err(TransforError::NonTabularForCsv);
                     }
-                }
-
-                // Write all data rows
-                for row in rows {
-                    wtr.write_record(&row)?;
                 }
                 wtr.flush()?;
             } else {
