@@ -21,21 +21,31 @@ use std::io::{Read, Write};
 /// A `Result` containing the `serde_json::Value` on success, or a
 /// `TransforError` on failure.
 pub fn read_data(mut r: impl Read, format: Format) -> Result<Value, TransforError> {
-    // Read the entire input into a string.
-    let mut content = String::new();
-    r.read_to_string(&mut content)?;
-    if content.is_empty() {
-        return Err(TransforError::EmptyInput);
-    }
-
-    // Deserialize from the specified format into `Value`
+    // Deserialize from the specified format into `Value` using streaming where possible
     let data: Value = match format {
-        Format::Json => serde_json::from_str(&content)?,
-        Format::Toml => toml::from_str(&content)?,
+        Format::Json => {
+            // Use streaming deserialization for JSON
+            serde_json::from_reader(r)?
+        }
+        Format::Toml => {
+            // TOML requires reading to a string as the toml crate's deserializer works on &str
+            let mut content = String::new();
+            r.read_to_string(&mut content)?;
+            if content.is_empty() {
+                return Err(TransforError::EmptyInput);
+            }
+            toml::from_str(&content)?
+        }
         Format::Csv => {
-            // Special handling for CSV. We convert it into an array of objects.
-            let mut rdr = csv::Reader::from_reader(content.as_bytes());
+            // Use streaming deserialization for CSV
+            let mut rdr = csv::Reader::from_reader(r);
             let headers = rdr.headers()?.clone();
+            
+            // Check for empty input (no headers)
+            if headers.is_empty() {
+                return Err(TransforError::EmptyInput);
+            }
+            
             let mut records = Vec::new();
 
             for result in rdr.records() {
@@ -91,7 +101,7 @@ pub fn write_data(mut w: impl Write, data: &Value, format: Format) -> Result<(),
                 }
 
                 // Get headers from the first object
-                let headers: Vec<String> = if let Some(Value::Object(first)) = records.get(0) {
+                let headers: Vec<String> = if let Some(Value::Object(first)) = records.first() {
                     let mut h: Vec<String> = first.keys().cloned().collect();
                     h.sort(); // Ensure consistent column order
                     h
