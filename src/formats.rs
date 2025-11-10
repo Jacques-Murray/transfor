@@ -4,8 +4,8 @@
 //! into a universal intermediate representation (`serde_json::Value`)
 //! and writing from that representation to a target format.
 
-use crate::{cli::Format, error::TransforError};
-use create::error::TransforError;
+use crate::cli::Format;
+use crate::error::TransforError;
 use serde_json::Value;
 use std::io::{Read, Write};
 
@@ -65,7 +65,7 @@ pub fn read_data(mut r: impl Read, format: Format) -> Result<Value, TransforErro
 ///
 /// # Returns
 /// A `Result` indicating success or containing a `TransforError` on failure.
-pub fn write_data(mut w: impl Write, data: &Value, format: Foramt) -> Result<(), TransforError> {
+pub fn write_data(mut w: impl Write, data: &Value, format: Format) -> Result<(), TransforError> {
     match format {
         Format::Json => {
             let s = serde_json::to_string_pretty(data)?;
