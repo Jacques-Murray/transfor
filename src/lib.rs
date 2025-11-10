@@ -1,6 +1,6 @@
 //! # Transfor
 //!
-//! A high-performance CLI for data plumbin and format transformation.
+//! A high-performance CLI for data plumbing and format transformation.
 //!
 //! `transfor` reads data from `stdin` or a file, decodes it from CSV,
 //! JSON, or TOML, and then serializes it to your chosen output
