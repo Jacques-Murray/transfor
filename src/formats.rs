@@ -6,7 +6,7 @@
 
 use crate::cli::Format;
 use crate::error::TransforError;
-use serde_json::Value;
+use serde_json::{Value, json};
 use std::io::{Read, Write};
 
 /// Reads data from a reader and deserializes it into `serde_json::Value`.
@@ -72,7 +72,12 @@ pub fn write_data(mut w: impl Write, data: &Value, format: Format) -> Result<(),
             w.write_all(s.as_bytes())?;
         }
         Format::Toml => {
-            let s = toml::to_string(data)?;
+            let s = if data.is_array() {
+                let wrapped_data = json!({"data":data});
+                toml::to_string(&wrapped_data)?
+            } else {
+                toml::to_string(data)?
+            };
             w.write_all(s.as_bytes())?;
         }
         Format::Csv => {
