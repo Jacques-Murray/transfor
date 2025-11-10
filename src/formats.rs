@@ -79,8 +79,6 @@ pub fn write_data(mut w: impl Write, data: &Value, format: Format) -> Result<(),
             // Special handling for CSV. We expect an array of objects.
             if let Value::Array(records) = data {
                 let mut wtr = csv::Writer::from_writer(w);
-                let mut headers: Vec<String> = Vec::new();
-                let mut rows: Vec<Vec<String>> = Vec::new();
 
                 if records.is_empty() {
                     // Handle empty array: write nothing, not even headers.
@@ -88,16 +86,19 @@ pub fn write_data(mut w: impl Write, data: &Value, format: Format) -> Result<(),
                 }
 
                 // Get headers from the first object
-                if let Some(Value::Object(first)) = records.get(0) {
-                    headers = first.keys().cloned().collect();
-                    headers.sort(); // Ensure consistent column order
+                let headers: Vec<String> = if let Some(Value::Object(first)) = records.get(0) {
+                    let mut h: Vec<String> = first.keys().cloned().collect();
+                    h.sort(); // Ensure consistent column order
+                    h
                 } else {
                     // The array contains non-objects
                     return Err(TransforError::NonTabularForCsv);
-                }
+                };
 
                 // Write header record
                 wtr.write_record(&headers)?;
+
+                let mut rows: Vec<Vec<String>> = Vec::new();
 
                 // Convert all records to rows
                 for record in records {

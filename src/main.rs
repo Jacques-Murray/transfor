@@ -31,7 +31,7 @@ fn run() -> Result<(), TransforError> {
     let cli = Cli::parse();
 
     // 1. Determine input format
-    let input_format = guess_input_format(&cli.input_file.as_deref(), cli.input_format)?;
+    let input_format = guess_input_format(cli.input_file.as_deref(), cli.input_format)?;
 
     // 2. Set up input reader
     let mut reader = get_reader(cli.input_file)?;
@@ -93,7 +93,7 @@ fn guess_input_format(
         Some("toml") => Ok(Format::Toml),
         Some("csv") => Ok(Format::Csv),
         _ => Err(TransforError::UnknownInputFormat(
-            path.to_string().unwrap_or_default().to_string(),
+            path.display().to_string(),
         )),
     }
 }
