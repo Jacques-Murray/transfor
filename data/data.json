@@ -1,0 +1,10 @@
+{
+  "project": "transfor",
+  "version": 1.0,
+  "stable": true,
+  "formats": [
+    "json",
+    "csv",
+    "toml"
+  ]
+}
