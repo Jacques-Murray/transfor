@@ -118,7 +118,7 @@ pub fn write_data(mut w: impl Write, data: &Value, format: Format) -> Result<(),
                                 Value::Bool(b) => b.to_string(),
                                 Value::Null => String::new(),
                                 // For complex types, serialize them as JSON strings.
-                                v => serde_json::to_string(v).unwrap_or_default(),
+                                v => serde_json::to_string(v).ok().unwrap_or_default(),
                             };
                             row.push(val_str);
                         }
