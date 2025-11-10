@@ -68,8 +68,7 @@ pub fn read_data(mut r: impl Read, format: Format) -> Result<Value, TransforErro
 pub fn write_data(mut w: impl Write, data: &Value, format: Format) -> Result<(), TransforError> {
     match format {
         Format::Json => {
-            let s = serde_json::to_string_pretty(data)?;
-            w.write_all(s.as_bytes())?;
+            serde_json::to_writer_pretty(w, data)?;
         }
         Format::Toml => {
             let s = if data.is_array() {
